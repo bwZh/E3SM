@@ -384,6 +384,12 @@ module clm_varctl
   logical, public :: initth_pf2clm= .false.                 ! switch for initializing CLM TH states from pflotran
   integer, public :: pf_clmnstep0 = 0                       ! the CLM timestep of start/restart
 
+  logical, public :: pflotran_surfaceflow        = .false.
+  logical, public :: pflotran_th_mode            = .false.
+  logical, public :: pflotran_th_freezing        = .false.
+  logical, public :: use_clm_soils               = .true.
+  logical, public :: shutoff_soilevap_below_tfrz = .false.
+
   ! cpl_bypass
    character(len=fname_len), public :: metdata_type   = ' '    ! metdata type for CPL_BYPASS mode
    character(len=fname_len), public :: metdata_bypass = ' '    ! met data directory for CPL_BYPASS mode (site, qian, cru_ncep)
