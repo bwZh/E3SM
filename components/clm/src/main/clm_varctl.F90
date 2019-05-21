@@ -324,6 +324,11 @@ module clm_varctl
   !----------------------------------------------------------
   logical, public :: use_petsc_thermal_model = .false.
 
+  !
+  !
+  !
+  logical           , public :: use_pflotran_via_emi = .false.
+
   !----------------------------------------------------------
   ! Stub EM switches
   !----------------------------------------------------------
