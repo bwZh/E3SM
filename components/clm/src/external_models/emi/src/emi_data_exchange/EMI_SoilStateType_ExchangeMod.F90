@@ -4,12 +4,13 @@ module EMI_SoilStateType_ExchangeMod
   use shr_log_mod                           , only : errMsg => shr_log_errMsg
   use abortutils                            , only : endrun
   use clm_varctl                            , only : iulog
-  use EMI_DataMod         , only : emi_data_list, emi_data
-  use EMI_DataDimensionMod , only : emi_data_dimension_list_type
-  use SoilStateType                         , only : soilstate_type
+  use EMI_DataMod                           , only : emi_data_list, emi_data
+  use EMI_DataDimensionMod                  , only : emi_data_dimension_list_type
+  use SoilStateType        , only : soilstate_type
   use EMI_Atm2LndType_Constants
   use EMI_CanopyStateType_Constants
   use EMI_ChemStateType_Constants
+  use EMI_CNCarbonStateType_Constants
   use EMI_EnergyFluxType_Constants
   use EMI_SoilHydrologyType_Constants
   use EMI_SoilStateType_Constants
@@ -37,7 +38,7 @@ contains
     ! Pack data from ALM soilstate_vars for EM
     !
     ! !USES:
-    use clm_varpar             , only : nlevsoi, nlevgrnd, nlevsno
+    use clm_varpar             , only : nlevgrnd
     !
     implicit none
     !
@@ -49,7 +50,7 @@ contains
     type(soilstate_type)   , intent(in) :: soilstate_vars
     !
     ! !LOCAL_VARIABLES:
-    integer                             :: fc,c,j
+    integer                             :: fc,c,j,k
     class(emi_data), pointer            :: cur_data
     logical                             :: need_to_pack
     integer                             :: istage
@@ -225,7 +226,7 @@ contains
     ! Pack data from ALM soilstate_vars for EM
     !
     ! !USES:
-    use clm_varpar             , only : nlevsoi, nlevgrnd, nlevsno
+    use clm_varpar             , only : nlevgrnd
     !
     implicit none
     !
@@ -237,7 +238,7 @@ contains
     type(soilstate_type)   , intent(in) :: soilstate_vars
     !
     ! !LOCAL_VARIABLES:
-    integer                             :: fp,p,j
+    integer                             :: fp,p,j,k
     class(emi_data), pointer            :: cur_data
     logical                             :: need_to_pack
     integer                             :: istage
@@ -293,7 +294,7 @@ contains
     ! Unpack data for ALM soilstate_vars from EM
     !
     ! !USES:
-    use clm_varpar             , only : nlevsoi, nlevgrnd, nlevsno
+    use clm_varpar             , only : nlevgrnd
     !
     implicit none
     !
@@ -305,14 +306,18 @@ contains
     type(soilstate_type)   , intent(in) :: soilstate_vars
     !
     ! !LOCAL_VARIABLES:
-    integer                             :: fc,c,j
+    integer                             :: fc,c,j,k
     class(emi_data), pointer            :: cur_data
     logical                             :: need_to_pack
     integer                             :: istage
     integer                             :: count
 
     associate(& 
-         smp_l => soilstate_vars%smp_l_col   &
+         smp_l  => soilstate_vars%smp_l_col  , &
+         watsat => soilstate_vars%watsat_col , &
+         hksat  => soilstate_vars%hksat_col  , &
+         bsw    => soilstate_vars%bsw_col    , &
+         sucsat => soilstate_vars%sucsat_col   &
          )
 
     count = 0
@@ -338,6 +343,42 @@ contains
                 c = filter(fc)
                 do j = 1, nlevgrnd
                    smp_l(c,j) = cur_data%data_real_2d(c,j)
+                enddo
+             enddo
+             cur_data%is_set = .true.
+
+          case (E2L_PARAMETER_WATSATC)
+             do fc = 1, num_filter
+                c = filter(fc)
+                do j = 1, nlevgrnd
+                   watsat(c,j) = cur_data%data_real_2d(c,j)
+                enddo
+             enddo
+             cur_data%is_set = .true.
+
+          case (E2L_PARAMETER_HKSATC)
+             do fc = 1, num_filter
+                c = filter(fc)
+                do j = 1, nlevgrnd
+                   hksat(c,j) = cur_data%data_real_2d(c,j)
+                enddo
+             enddo
+             cur_data%is_set = .true.
+
+          case (E2L_PARAMETER_BSWC)
+             do fc = 1, num_filter
+                c = filter(fc)
+                do j = 1, nlevgrnd
+                   bsw(c,j) = cur_data%data_real_2d(c,j)
+                enddo
+             enddo
+             cur_data%is_set = .true.
+
+          case (E2L_PARAMETER_SUCSATC)
+             do fc = 1, num_filter
+                c = filter(fc)
+                do j = 1, nlevgrnd
+                   sucsat(c,j) = cur_data%data_real_2d(c,j)
                 enddo
              enddo
              cur_data%is_set = .true.
