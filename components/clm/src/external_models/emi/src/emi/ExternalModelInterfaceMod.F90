@@ -1192,6 +1192,12 @@ contains
             e2l_driver_list(iem), bounds_clump)
 
     case (EM_ID_PFLOTRAN)
+#ifdef USE_PETSC_LIB
+       call em_pflotran(clump_rank)%Solve(em_stage, dtime, nstep, clump_rank, &
+            l2e_driver_list(iem), e2l_driver_list(iem), bounds_clump)
+#else
+       call endrun('VSFM is on but code was not compiled with -DUSE_PETSC_LIB')
+#endif
 
     case (EM_ID_VSFM)
 #ifdef USE_PETSC_LIB
