@@ -1217,12 +1217,13 @@ contains
           ! Set gridcell indices
           g = col_gridcell(c)
           g_idx = (g - bounds_clump%begg)*nlevmapped + j
+          c_idx = c - begc+1
           qflx_clm_loc(g_idx) = qflx_clm_loc(g_idx) + &
                (&
-               mflx_infl_col_1d(c)    + &
-               mflx_dew_col_1d(c)     + &
-               mflx_snowlyr_col_1d(c) + &
-               mflx_sub_snow_col_1d(c)  &
+               mflx_infl_col_1d(c_idx)    + &
+               mflx_dew_col_1d(c_idx)     + &
+               mflx_snowlyr_col_1d(c_idx) + &
+               mflx_sub_snow_col_1d(c_idx)  &
                )*col_wtgcell*area_clm_loc(g_idx)
        end if
        total_mass_flux_col(c) = 0.d0

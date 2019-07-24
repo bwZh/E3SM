@@ -53,6 +53,8 @@ contains
     ! GB-FIX-ME: The call to control_spmd() [in subroutine control_init()] before
     !            call to init_hydrology() would avoid the mpi broadcast
     call mpi_bcast (use_vsfm, 1, MPI_LOGICAL, 0, mpicom, ier)
+    call mpi_bcast (use_pflotran_via_emi, 1, MPI_LOGICAL, 0, mpicom, ier)
+
     if (use_vsfm) soilroot_water_method = vsfm
 
     if (use_pflotran_via_emi) soilroot_water_method = pflotran
