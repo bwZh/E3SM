@@ -11,6 +11,7 @@ module EMI_WaterStateType_ExchangeMod
   use EMI_Atm2LndType_Constants
   use EMI_CanopyStateType_Constants
   use EMI_ChemStateType_Constants
+  use EMI_CNCarbonStateType_Constants
   use EMI_EnergyFluxType_Constants
   use EMI_SoilHydrologyType_Constants
   use EMI_SoilStateType_Constants
@@ -37,7 +38,9 @@ contains
     ! Pack data from ALM waterstate_vars for EM
     !
     ! !USES:
-    use clm_varpar             , only : nlevsoi, nlevgrnd, nlevsno
+    use clm_varpar             , only : nlevgrnd
+    use clm_varpar             , only : nlevsoi
+    use clm_varpar             , only : nlevsno
     !
     implicit none
     !
@@ -49,7 +52,7 @@ contains
     type(waterstate_type)  , intent(in) :: waterstate_vars
     !
     ! !LOCAL_VARIABLES:
-    integer                             :: fc,c,j
+    integer                             :: fc,c,j,k
     class(emi_data), pointer            :: cur_data
     logical                             :: need_to_pack
     integer                             :: istage
@@ -271,7 +274,8 @@ contains
     ! Unpack data for ALM waterstate_vars from EM
     !
     ! !USES:
-    use clm_varpar             , only : nlevsoi, nlevgrnd, nlevsno
+    use clm_varpar             , only : nlevgrnd
+    use clm_varpar             , only : nlevsoi
     !
     implicit none
     !
@@ -283,7 +287,7 @@ contains
     type(waterstate_type)  , intent(in) :: waterstate_vars
     !
     ! !LOCAL_VARIABLES:
-    integer                             :: fc,c,j
+    integer                             :: fc,c,j,k
     class(emi_data), pointer            :: cur_data
     logical                             :: need_to_pack
     integer                             :: istage
@@ -292,7 +296,8 @@ contains
     associate(& 
          h2osoi_liq => col_ws%h2osoi_liq , &
          h2osoi_ice => col_ws%h2osoi_ice , &
-         soilp      => col_ws%soilp        &
+         soilp      => col_ws%soilp      , &
+         h2osoi_vol => col_ws%h2osoi_vol   &
          )
 
     count = 0
@@ -336,6 +341,24 @@ contains
                 c = filter(fc)
                 do j = 1, nlevgrnd
                    soilp(c,j) = cur_data%data_real_2d(c,j)
+                enddo
+             enddo
+             cur_data%is_set = .true.
+
+          case (E2L_STATE_H2OSOI_VOL_NLEVSOI)
+             do fc = 1, num_filter
+                c = filter(fc)
+                do j = 1, nlevsoi
+                   h2osoi_vol(c,j) = cur_data%data_real_2d(c,j)
+                enddo
+             enddo
+             cur_data%is_set = .true.
+
+          case (E2L_STATE_H2OSOI_VOL_NLEVGRND)
+             do fc = 1, num_filter
+                c = filter(fc)
+                do j = 1, nlevgrnd
+                   h2osoi_vol(c,j) = cur_data%data_real_2d(c,j)
                 enddo
              enddo
              cur_data%is_set = .true.

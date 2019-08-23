@@ -304,6 +304,7 @@ module clm_varctl
   logical, public :: use_cn              = .false.
   logical, public :: use_crop            = .false.
   logical, public :: use_snicar_frc      = .false.
+  logical, public :: use_snicar_ad       = .false.
   logical, public :: use_vancouver       = .false.
   logical, public :: use_mexicocity      = .false.
   logical, public :: use_noio            = .false.
@@ -322,6 +323,11 @@ module clm_varctl
   ! PETSc-based thermal model switches
   !----------------------------------------------------------
   logical, public :: use_petsc_thermal_model = .false.
+
+  !
+  !
+  !
+  logical           , public :: use_pflotran_via_emi = .false.
 
   !----------------------------------------------------------
   ! Stub EM switches
@@ -360,6 +366,15 @@ module clm_varctl
   character(len=256), public :: domain_decomp_type    = 'round_robin'
 
   !-----------------------------------------------------------------------
+  ! flux limiter for phenology flux calculation
+  logical, public :: use_pheno_flux_limiter = .false.
+
+  ! Soil erosion
+  !-----------------------------------------------------------------------
+  logical, public :: use_erosion    = .false.
+  logical, public :: ero_ccycle     = .false.
+
+  !-----------------------------------------------------------------------
   ! bgc & pflotran interface
   !
   logical, public :: use_clm_interface  = .false.
@@ -373,6 +388,12 @@ module clm_varctl
   logical, public :: pf_frzmode   = .false.                 ! switch for 'freezing' mode availablity in PF-thmode (will be updated in interface)
   logical, public :: initth_pf2clm= .false.                 ! switch for initializing CLM TH states from pflotran
   integer, public :: pf_clmnstep0 = 0                       ! the CLM timestep of start/restart
+
+  logical, public :: pflotran_surfaceflow        = .false.
+  logical, public :: pflotran_th_mode            = .false.
+  logical, public :: pflotran_th_freezing        = .false.
+  logical, public :: use_clm_soils               = .true.
+  logical, public :: shutoff_soilevap_below_tfrz = .false.
 
   ! cpl_bypass
    character(len=fname_len), public :: metdata_type   = ' '    ! metdata type for CPL_BYPASS mode

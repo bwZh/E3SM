@@ -395,7 +395,7 @@ contains
 
              !1. partition surface inputs between soil and h2osfc
              qflx_in_soil(c) = (1._r8 - frac_h2osfc(c)) * (qflx_top_soil(c)  - qflx_surf(c))
-             qflx_in_h2osfc(c) = frac_h2osfc(c) * (qflx_top_soil(c)  - qflx_surf(c))          
+             qflx_in_h2osfc(c) = frac_h2osfc(c) * (qflx_top_soil(c)  - qflx_surf(c))
              qflx_gross_infl_soil(c) = (1._r8 - frac_h2osfc(c)) * (qflx_top_soil(c)  - qflx_surf(c))
              
              !2. remove evaporation (snow treated in SnowHydrology)
@@ -484,7 +484,7 @@ contains
              !--  if all water evaporates, there will be no bottom drainage
              if (h2osfc(c) < 0.0) then
                 qflx_infl(c) = qflx_infl(c) + h2osfc(c)/dtime
-                qflx_gross_evap_soil(c) = qflx_gross_evap_soil(c) - h2osfc(c)/dtime                
+                qflx_gross_evap_soil(c) = qflx_gross_evap_soil(c) - h2osfc(c)/dtime
                 h2osfc(c) = 0.0
                 qflx_h2osfc_drain(c)= 0._r8
              else
@@ -498,7 +498,7 @@ contains
              !7. remove drainage from h2osfc and add to qflx_infl
              h2osfc(c) = h2osfc(c) - qflx_h2osfc_drain(c) * dtime
              qflx_infl(c) = qflx_infl(c) + qflx_h2osfc_drain(c)
-             qflx_gross_infl_soil(c) = qflx_gross_infl_soil(c) + qflx_h2osfc_drain(c)             
+             qflx_gross_infl_soil(c) = qflx_gross_infl_soil(c) + qflx_h2osfc_drain(c)
           else
              ! non-vegetated landunits (i.e. urban) use original CLM4 code
              if (snl(c) >= 0) then
@@ -542,7 +542,7 @@ contains
      use clm_varcon       , only : pondmx, tfrz, watmin,denice,denh2o
      use clm_varpar       , only : nlevsoi, nlevgrnd
      use column_varcon    , only : icol_roof, icol_road_imperv
-     use clm_varctl       , only : use_vsfm, use_var_soil_thick
+     use clm_varctl       , only : use_vsfm, use_pflotran_via_emi, use_var_soil_thick
      use SoilWaterMovementMod, only : zengdecker_2009_with_var_soil_thick
      !
      ! !ARGUMENTS:
@@ -648,7 +648,7 @@ contains
           end do
        end do
 
-       if (.not.use_vsfm) then
+       if (.not. (use_vsfm .or. use_pflotran_via_emi)) then
           do fc = 1, num_hydrologyc
              c = filter_hydrologyc(fc)
              qflx_drain(c)    = 0._r8
@@ -825,7 +825,7 @@ contains
           if (snl(c)+1 >= 1) then
 
              ! make consistent with how evap_grnd removed in infiltration
-             if (.not.use_vsfm) then
+             if (.not.(use_vsfm .or. use_pflotran_via_emi)) then
                 h2osoi_liq(c,1) = h2osoi_liq(c,1) + (1._r8 - frac_h2osfc(c))*qflx_dew_grnd(c) * dtime
                 h2osoi_ice(c,1) = h2osoi_ice(c,1) + (1._r8 - frac_h2osfc(c))*qflx_dew_snow(c) * dtime
                 if (qflx_sub_snow(c)*dtime > h2osoi_ice(c,1)) then
@@ -875,7 +875,7 @@ contains
      use clm_varcon       , only : pondmx, tfrz, watmin,rpi, secspday, nlvic
      use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv
      use abortutils       , only : endrun
-     use clm_varctl       , only : use_vsfm, use_var_soil_thick
+     use clm_varctl       , only : use_vsfm, use_pflotran_via_emi, use_var_soil_thick
      use SoilWaterMovementMod, only : zengdecker_2009_with_var_soil_thick
      use pftvarcon        , only : rsub_top_globalmax
      !
@@ -1101,7 +1101,7 @@ contains
              do k = jwt(c)+1, k_frz
                 rsub_top_layer=max(rsub_top_tot,-(h2osoi_liq(c,k)-watmin))
                 rsub_top_layer=min(rsub_top_layer,0._r8)
-                if (use_vsfm) then
+                if (use_vsfm .or. use_pflotran_via_emi) then
                    rsub_top_layer = 0._r8
                 endif
                 rsub_top_tot = rsub_top_tot - rsub_top_layer
@@ -1187,7 +1187,7 @@ contains
                 do k = k_perch+1, k_frz
                    rsub_top_layer=max(rsub_top_tot,-(h2osoi_liq(c,k)-watmin))
                    rsub_top_layer=min(rsub_top_layer,0._r8)
-                   if (use_vsfm) rsub_top_layer = 0._r8
+                   if (use_vsfm .or. use_pflotran_via_emi) rsub_top_layer = 0._r8
                    rsub_top_tot = rsub_top_tot - rsub_top_layer
 
                    h2osoi_liq(c,k) = h2osoi_liq(c,k) + rsub_top_layer
@@ -1259,7 +1259,7 @@ contains
 		end if
              end if
 
-             if (use_vsfm) rsub_top(c) = 0._r8
+             if (use_vsfm .or. use_pflotran_via_emi) rsub_top(c) = 0._r8
 
              ! use analytical expression for aquifer specific yield
              rous = watsat(c,nlevbed) &
@@ -1316,7 +1316,7 @@ contains
                       do j = (nlvic(1)+nlvic(2)+1), nlevbed
                          rsub_top_layer=max(rsub_top_tot, rsub_top_tot*hk_l(c,j)*dzmm(c,j)/wtsub_vic)
                          rsub_top_layer=min(rsub_top_layer,0._r8)
-                         if (use_vsfm) rsub_top_layer = 0._r8
+                         if (use_vsfm .or. use_pflotran_via_emi) rsub_top_layer = 0._r8
                          h2osoi_liq(c,j) = h2osoi_liq(c,j) + rsub_top_layer
                          rsub_top_tot = rsub_top_tot - rsub_top_layer
                       end do
@@ -1329,7 +1329,7 @@ contains
 
                          rsub_top_layer=max(rsub_top_tot,-(s_y*(zi(c,j) - zwt(c))*1.e3))
                          rsub_top_layer=min(rsub_top_layer,0._r8)
-                         if (use_vsfm) rsub_top_layer = 0._r8
+                         if (use_vsfm .or. use_pflotran_via_emi) rsub_top_layer = 0._r8
                          h2osoi_liq(c,j) = h2osoi_liq(c,j) + rsub_top_layer
 
                          rsub_top_tot = rsub_top_tot - rsub_top_layer
@@ -1386,7 +1386,7 @@ contains
       	  nlevbed = nlev2bed(c)
           do j = nlevbed,2,-1
              xsi(c)            = max(h2osoi_liq(c,j)-eff_porosity(c,j)*dzmm(c,j),0._r8)
-             if (use_vsfm) then
+             if (use_vsfm .or. use_pflotran_via_emi) then
                 xsi(c) = 0._r8
              else
                 h2osoi_liq(c,j)   = min(eff_porosity(c,j)*dzmm(c,j), h2osoi_liq(c,j))
@@ -1401,7 +1401,7 @@ contains
           !scs: watmin addition to fix water balance errors
           xs1(c)          = max(max(h2osoi_liq(c,1)-watmin,0._r8)- &
                max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_ice(c,1)-watmin)),0._r8)
-          if (use_vsfm) xs1(c) = 0._r8
+          if (use_vsfm .or. use_pflotran_via_emi) xs1(c) = 0._r8
           h2osoi_liq(c,1) = h2osoi_liq(c,1) - xs1(c)
 
           if (lun_pp%urbpoi(col_pp%landunit(c))) then
@@ -1417,7 +1417,7 @@ contains
              endif
           endif
 
-          if (use_vsfm) qflx_rsub_sat(c) = 0._r8
+          if (use_vsfm .or. use_pflotran_via_emi) qflx_rsub_sat(c) = 0._r8
 
           ! add in ice check
           xs1(c)          = max(max(h2osoi_ice(c,1),0._r8)-max(0._r8,(pondmx+watsat(c,1)*dzmm(c,1)-h2osoi_liq(c,1))),0._r8)
@@ -1520,7 +1520,7 @@ contains
      use clm_varcon       , only : pondmx, tfrz, watmin,rpi, secspday, nlvic
      use column_varcon    , only : icol_roof, icol_road_imperv, icol_road_perv
      use abortutils       , only : endrun
-     use clm_varctl       , only : use_vsfm
+     use clm_varctl       , only : use_vsfm, use_pflotran_via_emi
      use pftvarcon        , only : rsub_top_globalmax
      !
      ! !ARGUMENTS:
